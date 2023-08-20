@@ -216,7 +216,7 @@ lcc1802_targets: \
 ORCAC_OPTS = $(GLOBAL_OPTS) $(ORCAC_MAKEFILE_COMPILATION_OPTS)
 
 apple2gs: $(ASSETS_PATH)/8x8_chars.h
-	$(ORCAC) \
+	$(ORCAC) 'cc=-p"cross_lib/cfg/orcac/preload.h" -i"games/snake"' \
 	$(CROSS_LIB_PATH)/display/init_graphics/orcac/apple2gs/shr.c \
 	$(FULL_FILES) \
 	$(CROSS_LIB_PATH)/display/alt_print/memory_mapped_alt_print.c \
