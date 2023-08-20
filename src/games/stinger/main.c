@@ -29,9 +29,9 @@
 // #define DEBUG 1
 //#define TRAINER 1
 
-#define INITIAL_LEVEL 5
+#define INITIAL_LEVEL 4
 
-#define LAST_LEVEL 5
+#define LAST_LEVEL 4
 #define INITIAL_LIVES 3
 #define MAX_LIVES 9
 
@@ -69,7 +69,7 @@
     #define MAX_ARROWS_ON_SCREEN 12
 #endif
 
-#define AUTO_RECHARGE_COOL_DOWN 45
+#define AUTO_RECHARGE_COOL_DOWN 50
 #define AUTO_ARROW_RECAHRGE 9
 
 #define MAX_FREEZE 1
@@ -84,9 +84,9 @@
 #define POWERUP_POINTS 30
 #define FREEZE_POINTS 60
 #define WALL_POINTS 80
-#define ZOMBIE_ITEM_POINTS 150 
+#define SECRET_ITEM_POINTS 500 
 #define POWER_UP_BONUS 25
-#define LEVEL_BONUS 250
+#define LEVEL_BONUS 200
 
 
 #define RED_FIRE_POWER_VALUE 2
@@ -115,17 +115,28 @@
 #define WALL_ENERGY 20
 
 #define MAX_ARROWS 99
-#define HYPER_RECHARGE 50
-#define ARROW_RECHARGE 30
+#define HYPER_RECHARGE 30
+#define ARROW_RECHARGE 15
 
 #define FREEZE_COUNTER_MAX 100;
 
 #define WALL_COLOR _XL_GREEN
+#define FREEZE_COLOR _XL_CYAN
+#define SECRET_COLOR _XL_GREEN
+
+
+uint8_t max_occupied_columns;
 
 #if XSize<=40
-    #define MAX_OCCUPIED_COLUMNS (9*(XSize)/16)
+    #define MAX_OCCUPIED_COLUMNS (3*(XSize)/4)
 #else
     #define MAX_OCCUPIED_COLUMNS (2*(XSize)/3)
+#endif
+
+#if XSize<=40
+    #define MAX_DENSILY_OCCUPIED_COLUMNS (XSize-2-3)
+#else
+    #define MAX_DENSILY_OCCUPIED_COLUMNS (XSize-2-6)
 #endif
 
 #define FEW_ZOMBIES (2*(MAX_OCCUPIED_COLUMNS)/3)
@@ -150,7 +161,7 @@
 
 #define LEVEL_2_ZOMBIE_THRESHOLD 8
 
-#define MAX_HYPER_COUNTER 180
+#define MAX_HYPER_COUNTER 160
 
 #if YSize>=20
     #define HEIGHT_SHOOT_THRESHOLD YSize-10
@@ -316,27 +327,48 @@ typedef struct ItemStruct Missile;
  Item freezeItem;
  Item powerUpItem;
  Item wallItem;
- Item zombieItem;
+ Item secretItem;
 
 #if !defined(NO_EXTRA_TITLE)
- const uint8_t item_tile[5][2] = 
+ const uint8_t item_tile[6][2] = 
 {
     { POWER_UP_TILE, _XL_WHITE },
     { ARROW_TILE_1, _XL_YELLOW },
     { EXTRA_POINTS_TILE, _XL_YELLOW },
     { FREEZE_TILE, _XL_CYAN },
     { WALL_TILE, WALL_COLOR },
+	{ SECRET_TILE, SECRET_COLOR},
 };
 
- const char item_name[5][9] = 
+ const char item_name[6][9] = 
 {
     _XL_P _XL_O _XL_W _XL_E _XL_R _XL_SPACE _XL_U _XL_P,
     _XL_R _XL_O _XL_C _XL_K _XL_E _XL_T _XL_S,
     _XL_P _XL_O _XL_I _XL_N _XL_T _XL_S,
     _XL_F _XL_R _XL_E _XL_E _XL_Z _XL_E,
     _XL_W _XL_A _XL_L _XL_L,
+	_XL_S _XL_E _XL_C _XL_R _XL_E _XL_T,
 };
 #endif
+
+#if !defined(NO_EXTRA_TITLE)
+ const uint8_t enemy_tile[5][2] = 
+{
+    { MINION_TILE_0, _XL_WHITE },
+    { BOSS_TILE_0, _XL_GREEN },
+    { ZOMBIE_DEATH_TILE, _XL_YELLOW },
+    { BOSS_TILE_0, _XL_RED },
+};
+
+ const char enemy_name[4][8] = 
+{
+    _XL_L _XL_I _XL_G _XL_H _XL_T,
+    _XL_M _XL_E _XL_D _XL_I _XL_U _XL_M,
+    _XL_S _XL_T _XL_E _XL_A _XL_L _XL_T _XL_H,
+    _XL_H _XL_E _XL_A _XL_V _XL_Y,
+};
+#endif
+
 
 
  Missile enemyMissile[MAX_NUMBER_OF_MISSILES];
@@ -876,7 +908,7 @@ void power_up_effect(void)
         else if(pmod10==4)
         {
             #if !defined(_XL_NO_COLOR)
-            powerUpItem._color = _XL_CYAN; 
+            powerUpItem._color = FREEZE_COLOR; 
             #endif
         } 
         else if(pmod10==5)
@@ -904,7 +936,7 @@ void power_up_effect(void)
             
             case 4:
                 #if !defined(_XL_NO_COLOR)
-                powerUpItem._color = _XL_CYAN; 
+                powerUpItem._color = FREEZE_COLOR; 
                 #endif
             break;
             
@@ -968,14 +1000,15 @@ void power_up_effect(void)
         
         case 17:
             #if !defined(_XL_NO_COLOR)
-            powerUpItem._color = _XL_GREEN;
+            powerUpItem._color = SECRET_COLOR;
             #endif
         break;
         
         case 18:
             zombie_locked = 0;
+			powerUpItem._color = _XL_WHITE;
         break;
-        
+		
         default:
         break;
     }
@@ -1047,7 +1080,7 @@ void zombie_effect(void)
     display_zombies();
 
     zombie_locked = 1;
-    increase_score(ZOMBIE_ITEM_POINTS);
+    increase_score(SECRET_ITEM_POINTS);
 }
 
 void beam_effect(void)
@@ -1067,7 +1100,7 @@ void beam_effect(void)
         \
         freezeItem._active = 0; \
         freezeItem._tile = FREEZE_TILE; \
-        freezeItem._color = _XL_CYAN; \
+        freezeItem._color = FREEZE_COLOR; \
         freezeItem._effect = freeze_effect; \
         \
         powerUpItem._active = 0; \
@@ -1080,10 +1113,10 @@ void beam_effect(void)
         wallItem._color = WALL_COLOR; \
         wallItem._effect = wall_effect; \
         \
-        zombieItem._active = 0; \
-        zombieItem._tile = BOSS_TILE_0; \
-        zombieItem._color = _XL_GREEN; \
-        zombieItem._effect = zombie_effect; \
+        secretItem._active = 0; \
+        secretItem._tile = SECRET_TILE; \
+        secretItem._color = SECRET_COLOR; \
+        secretItem._effect = zombie_effect; \
         \
         for(i=0;i<MAX_NUMBER_OF_MISSILES;++i) \
         { \
@@ -1119,9 +1152,9 @@ void beam_effect(void)
         wallItem._tile = WALL_TILE; \
         wallItem._effect = wall_effect; \
         \
-        zombieItem._active = 0; \
-        zombieItem._tile = BOSS_TILE_0; \
-        zombieItem._effect = zombie_effect; \
+        secretItem._active = 0; \
+        secretItem._tile = BOSS_TILE_0; \
+        secretItem._effect = zombie_effect; \
         \
         for(i=0;i<MAX_NUMBER_OF_MISSILES;++i) \
         { \
@@ -1254,17 +1287,20 @@ void handle_item(register Item* item)
     handle_item(&freezeItem); \
     handle_item(&powerUpItem); \
     handle_item(&wallItem); \
-    handle_item(&zombieItem); \
+    handle_item(&secretItem); \
     \
     for(i=0;i<MAX_NUMBER_OF_MISSILES;++i) \
     { \
         handle_item(&extraPointsItem[i]); \
+    } \
+    for(i=0;i<MAX_NUMBER_OF_MISSILES;++i) \
+    { \
         handle_item(&enemyMissile[i]); \
     } \
 }
 
 
-#if XSize!=13 && XSize!=26 && XSize!=39 && XSize!=52 && XSize!=65 && XSize!=78
+#if (XSize-2)!=13 && (XSize-2)!=26 && (XSize-2)!=39 && (XSize-2)!=52 && (XSize-2)!=65 && (XSize-2)!=78
     #define STEP 13
 #else
     #define STEP 17
@@ -1281,17 +1317,31 @@ uint8_t find_random_zombie(uint8_t value)
     uint8_t i;
     uint8_t index;
     
-    index = (uint8_t) (_XL_RAND())&RANDOM_ZOMBIE_RANGE_START;
+    // index = (uint8_t) (_XL_RAND())&RANDOM_ZOMBIE_RANGE_START;
 
-    for(i=0;i<XSize;++i)
+    // for(i=1;i<XSize-1;++i)
+    // {
+        // index = 1+(index+STEP)%(XSize-2);
+        // if(zombie_active[index]==value)
+        // {
+            // return index;
+        // }
+    // }
+	
+    index = (uint8_t) (_XL_RAND())%(XSize-2);
+
+    for(i=1;i<XSize-1;++i)
     {
-        index = (index+STEP)%XSize;
+        index%=(XSize-2);
+		++index;
         if(zombie_active[index]==value)
         {
             return index;
         }
-    }
-    return XSize;
+    }	
+	
+	// while(1){}; // TODO: Only for debugging
+    return 1;
 }
 
 
@@ -1304,15 +1354,29 @@ void activate_zombie(void)
     while((old_x==zombie_x) || (old_x+1==zombie_x) || (old_x-1==zombie_x))
     {
         zombie_x = find_random_zombie(0);
+		
+		// TODO: Is this possible?
+		// if(zombie_x==XSize)
+		// {
+			// return;
+		// }
     };    
   
-    zombie_active[zombie_x]=1;    
-    zombie_shape[zombie_x]=0;
     #if YSize<=16
         zombie_y[zombie_x]=INITIAL_RESPAWN_ZOMBIE_Y;
+		// zombie_y[zombie_x]=INITIAL_ZOMBIE_Y;
+
     #else
         zombie_y[zombie_x]=INITIAL_RESPAWN_ZOMBIE_Y+(level>>1);
+		// zombie_y[zombie_x]=INITIAL_ZOMBIE_Y;
+
     #endif
+	
+	_XL_DRAW(zombie_x, zombie_y[zombie_x], ZOMBIE_DEATH_TILE, _XL_WHITE);
+	_XL_TOCK_SOUND();
+	_XL_SLOW_DOWN(3*_XL_SLOW_DOWN_FACTOR);
+	zombie_active[zombie_x]=1;    
+    zombie_shape[zombie_x]=0;
 }
 
 
@@ -1343,7 +1407,7 @@ void spawn_boss(void)
         {
             rank = (uint8_t) (1 + ((_XL_RAND())%3));   
         }
-        else // 4
+        else // 4, 5
         {
             rank = (uint8_t) (2 + ((_XL_RAND())&1)); 
         }
@@ -1451,9 +1515,9 @@ void handle_item_drop(void)
                 drop_item(&wallItem,35);
             }
         }
-        else if(!zombie_locked && !zombieItem._active)
+        else if(!zombie_locked && !secretItem._active)
             {
-                drop_item(&zombieItem,50);
+                drop_item(&secretItem,50);
             }
         else
         {
@@ -1492,18 +1556,16 @@ void zombie_dies(void)
 {
     uint8_t y_pos = zombie_y[zombie_x];
     uint8_t i;
-    
-    // _XL_DELETE(zombie_x,y_pos-1);
-    // _XL_DELETE(zombie_x,y_pos);
 
     _XL_DELETE(zombie_x,y_pos+1);
     
     _XL_DRAW(zombie_x,y_pos, ZOMBIE_DEATH_TILE, _XL_RED);
 
 
-    for(i=0;i<17;++i)
+    for(i=0;i<12;++i)
     {
         _XL_DRAW(zombie_x,y_pos, ZOMBIE_DEATH_TILE, _XL_RED);
+		_XL_SLOW_DOWN(_XL_SLOW_DOWN_FACTOR/8);
         display_red_zombie();
     } 
     _XL_SHOOT_SOUND();
@@ -1727,15 +1789,15 @@ void handle_zombie_collisions(void)
 
 #define handle_missile_drops() \
 { \
-	if(!freeze) \
+	if(!freeze && !(main_loop_counter&1)) \
 	{ \
 		uint8_t missile_index; \
 		if((missile_index = find_inactive(enemyMissile)) < MAX_NUMBER_OF_MISSILES) \
 		{ \
 			\
-			zombie_x = (bow_x>>1)+(bow_x&1); \
+			zombie_x = (bow_x>>1)+(bow_x&1)-1+(_XL_RAND()%3); \
 			\
-			if(zombie_active[zombie_x] && zombie_y[zombie_x]<HEIGHT_SHOOT_THRESHOLD && ((zombie_level[zombie_x]==3) || (!(main_loop_counter&7)))) \
+			if(zombie_active[zombie_x] && zombie_y[zombie_x]<HEIGHT_SHOOT_THRESHOLD && ((zombie_level[zombie_x]==3) || (!(main_loop_counter&15)))) \
 			{ \
 				drop_item(&enemyMissile[missile_index],1); \
 			} \
@@ -1846,7 +1908,7 @@ void fire(void)
                     continue;
                 }
             }
-            if(new_arrow_x<XSize)
+            if(new_arrow_x<XSize-1 && new_arrow_x)
             {
                 compute_next_available_arrow_index();
 
@@ -1881,7 +1943,7 @@ void fire(void)
     { \
         input = _XL_INPUT(); \
         \
-        if(_XL_LEFT(input) && bow_x) \
+        if(_XL_LEFT(input) && bow_x>1) \
         { \
             move_left(); \
             if(bow_x) \
@@ -1889,7 +1951,7 @@ void fire(void)
                 move_left(); \
             } \
         } \
-        else if (_XL_RIGHT(input) && bow_x<MAX_BOW_X) \
+        else if (_XL_RIGHT(input) && bow_x<MAX_BOW_X-1) \
         { \
             move_right(); \
             if(bow_x<MAX_BOW_X) \
@@ -1908,11 +1970,11 @@ void fire(void)
     { \
         input = _XL_INPUT(); \
         \
-        if(_XL_LEFT(input) && bow_x) \
+        if(_XL_LEFT(input) && bow_x>1) \
         { \
             move_left(); \
         } \
-        else if (_XL_RIGHT(input) && bow_x<MAX_BOW_X) \
+        else if (_XL_RIGHT(input) && bow_x<MAX_BOW_X-1) \
         { \
             move_right(); \
         } \
@@ -1998,6 +2060,14 @@ do \
             zombie_locked = 1; \
             loaded_bow = 1; \
             alive = 1; \
+			if(level>=3) \
+			{ \
+				max_occupied_columns = MAX_DENSILY_OCCUPIED_COLUMNS; \
+			} \
+			else \
+			{ \
+				max_occupied_columns = MAX_OCCUPIED_COLUMNS; \
+			} \
             bow_reload_loops = RED_SPEED_VALUE; \
             auto_recharge_counter = AUTO_RECHARGE_COOL_DOWN; \
             remaining_arrows = MAX_ARROWS; \
@@ -2008,6 +2078,8 @@ do \
             number_of_arrows_per_shot = 1; \
             initialize_items(); \
             _XL_CLEAR_SCREEN(); \
+			_XL_DRAW(0,HEIGHT_SHOOT_THRESHOLD,WALL_TILE,WALL_COLOR); \
+			_XL_DRAW(XSize-1,HEIGHT_SHOOT_THRESHOLD,WALL_TILE,WALL_COLOR); \
         } while(0)
 
 #endif
@@ -2016,10 +2088,10 @@ do \
 
 void initialize_zombie_at_level_restart(void)
 {
-    zombie_y[zombie_x]=INITIAL_ZOMBIE_Y;
+    // zombie_y[zombie_x]=INITIAL_ZOMBIE_Y;
     ++zombie_counter;
     display_zombie();
-    _XL_TOCK_SOUND();
+    // _XL_TOCK_SOUND();
 }
 
 #define reset_wall_and_zombies() \
@@ -2035,13 +2107,13 @@ do \
 #define spawn_initial_minions() \
     minions_to_kill = MINIONS_ON_FIRST_LEVEL-killed_minions;  \
     \
-    if(minions_to_kill<MAX_OCCUPIED_COLUMNS) \
+    if(minions_to_kill<max_occupied_columns) \
     { \
         to_spawn_initially=minions_to_kill; \
     } \
     else \
     { \
-        to_spawn_initially=MAX_OCCUPIED_COLUMNS; \
+        to_spawn_initially=max_occupied_columns; \
     } \
     \
     zombie_counter = 0; \
@@ -2057,13 +2129,13 @@ do \
 #define spawn_initial_bosses() \
     bosses_to_kill = BOSSES_ON_FIRST_LEVEL+(level<<4)-killed_bosses; \
     \
-    if(bosses_to_kill<MAX_OCCUPIED_COLUMNS - to_spawn_initially) \
+    if(bosses_to_kill<max_occupied_columns - to_spawn_initially) \
     { \
         to_spawn_initially = bosses_to_kill;   \
     } \
     else \
     { \
-        to_spawn_initially = MAX_OCCUPIED_COLUMNS - to_spawn_initially; \
+        to_spawn_initially = max_occupied_columns - to_spawn_initially; \
     } \
     \
     zombie_counter = 0; \
@@ -2142,18 +2214,34 @@ do \
     { \
         uint8_t i; \
         \
-        for(i=0;i<5;++i) \
+        for(i=0;i<6;++i) \
         { \
-            _XL_DRAW(XSize/2-5,YSize/3+3+_NEXT_ROW, item_tile[i][0], item_tile[i][1]); \
+            _XL_DRAW(XSize/2-5,YSize/3+2+_NEXT_ROW, item_tile[i][0], item_tile[i][1]); \
             _XL_SET_TEXT_COLOR(_XL_GREEN); \
-            _XL_PRINT(XSize/2-5+3,YSize/3+3+_NEXT_ROW, (char *)item_name[i]); \
+            _XL_PRINT(XSize/2-5+3,YSize/3+2+_NEXT_ROW, (char *)item_name[i]); \
         } \
 		_XL_SET_TEXT_COLOR(_XL_YELLOW); \
         control_instructions(); \
     } while(0)
+		
+	void display_enemies(void)
+	{
+		uint8_t i;
+		
+		for(i=0;i<4;++i)
+		{
+			_XL_DRAW(XSize/2-5,YSize/3+3+_NEXT_ROW, enemy_tile[i][0], enemy_tile[i][1]);
+			_XL_SET_TEXT_COLOR(_XL_GREEN);
+			_XL_PRINT(XSize/2-5+3,YSize/3+3+_NEXT_ROW, (char *)enemy_name[i]);
+		}
+	}
 #else
     #define display_items()
+	#define display_enemies()
 #endif
+
+
+
 
 
 #if YSize<=22
@@ -2192,6 +2280,19 @@ do \
     \
     display_items(); \
     sleep_and_wait_for_input(); \
+}
+
+
+void display_second_screen() 
+{
+    _XL_CLEAR_SCREEN();
+    
+    display_wall(0);
+    display_wall(BOTTOM_WALL_Y+1);
+	_XL_SET_TEXT_COLOR(_XL_CYAN);
+	PRINT_CENTERED_ON_ROW(YSize/3, "ENEMY ARMOR");
+	display_enemies();
+    sleep_and_wait_for_input(); \
     _XL_CLEAR_SCREEN(); \
 }
 
@@ -2217,7 +2318,8 @@ do \
     { \
         _XL_SET_TEXT_COLOR(_XL_WHITE); \
         display_score(); \
-        _XL_DRAW(HI_X,0,HI_TILE, _XL_GREEN); \
+        _XL_SET_TEXT_COLOR(_XL_GREEN); \
+        _XL_CHAR(HI_X,0,'H'); \
         _XL_SET_TEXT_COLOR(_XL_WHITE); \
         _XL_PRINTD(HI_X+1,0,5, hiscore); \
         _XL_DRAW(6,0,ARROW_TILE_1,_XL_CYAN); \
@@ -2436,6 +2538,7 @@ int main(void)
     {
         global_initialization();
         display_initial_screen();
+		display_second_screen();
         
         while(lives && level<=LAST_LEVEL) // Level (re)-start 
         {            
