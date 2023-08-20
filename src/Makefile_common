@@ -76,6 +76,9 @@ endif
 gcc_targets: \
 	ncurses  
 
+orcac_targets: \
+    apple2gs
+
 ifeq ($(DO_WIN),1)
 cc65_targets: \
     apple2 \
@@ -206,6 +209,26 @@ lcc1802_targets: \
     clean_combo_files
 
 
+#################################################################
+# ORCAC
+
+#################################################################
+ORCAC_OPTS = $(GLOBAL_OPTS) $(ORCAC_MAKEFILE_COMPILATION_OPTS)
+
+apple2gs: $(ASSETS_PATH)/8x8_chars.h
+	$(ORCAC) \
+	$(CROSS_LIB_PATH)/display/init_graphics/orcac/apple2gs/shr.c \
+	$(FULL_FILES) \
+	$(CROSS_LIB_PATH)/display/alt_print/memory_mapped_alt_print.c \
+	$(CROSS_LIB_PATH)/sound/generic/bit_bang_sounds.c \
+	$(CROSS_LIB_PATH)/display/init_graphics/orcac/apple2gs/shr_init_graphics.c \
+	keep=$(BUILD_PATH)/$@
+
+#	 -D__ALT_SLEEP  $(APPLE2_GAME_OPTS) \
+#	 -D_XL_SLOW_DOWN_FACTOR=$(_COMMON_SLOWDOWN_FACTOR)*$(_APPLE2GS_SLOWDOWN) -D XSize=20 -D YSize=24 \
+#	 -D __ALT_PRINT  \
+#	 -D __DEFAULT_CLEAR_SCREEN \
+#	-o $(BUILD_PATH)/$@.bin
 
 #################################################################
 # CC65

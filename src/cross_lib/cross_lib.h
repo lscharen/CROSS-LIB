@@ -48,6 +48,7 @@
 	&& !defined(__NCURSES__) \
 	&& !defined(__MZ2500__) \
 	&& !defined(__VECTREX__) \
+    && !defined(__ORCAC__) \
 	&& !defined(ACK) \
 	&& !defined(__STDIO)
 	#define __INCLUDE_CONIO_H

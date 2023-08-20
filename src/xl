@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 from __future__ import print_function
 
@@ -87,7 +87,8 @@ def all_compilers_opts(zsdcc_extra_optimization, compiler_opts):
            " SCCZ80_MAKEFILE_COMPILATION_OPTS='" + sccz80_compiler_opts + compiler_opts + "'" + \
            " CMOC_MAKEFILE_COMPILATION_OPTS='" + cmoc_compiler_opts + "'" + \
            " CC65_MAKEFILE_COMPILATION_OPTS='" + cc65_compiler_opts + "'" + \
-           " LCC1802_MAKEFILE_COMPILATION_OPTS='" + lcc1802_compiler_opts + "'"
+           " LCC1802_MAKEFILE_COMPILATION_OPTS='" + lcc1802_compiler_opts + "'" + \
+           " ORCAC_MAKEFILE_COMPILATION_OPTS='" + orcac_compiler_opts + "'"
 
 
 def run_command_verbosely(command_string):
@@ -516,8 +517,9 @@ def build(params):
             print("sccz80_compiler_opts    : " + sccz80_compiler_opts)
             print("zsdcc_compiler_opts     : " + zsdcc_compiler_opts)
             print("cmoc_compiler_opts      : " + cmoc_compiler_opts)
-            print("cc65_compiler_opts      : " + cc65_compiler_opts) 
-            print("lcc1802_compiler_opts   : " + lcc1802_compiler_opts) 
+            print("cc65_compiler_opts      : " + cc65_compiler_opts)
+            print("lcc1802_compiler_opts   : " + lcc1802_compiler_opts)
+            print("orcac_compiler_opts     : " + orcac_compiler_opts)
             
             print("")
 
@@ -917,6 +919,7 @@ expected_files = {
     "z88dk_targets": 6, 
     "cmoc_targets": 3, 
     "lcc1802_targets": 1,
+    "orcac_targets": 1,
     "stdio": 1,
     "z88dk_targets_quick": 39
     }
@@ -1807,7 +1810,7 @@ def help(params):
         elif params[1]=="rotate":
             printc(bcolors.BOLD,"xl rotate <source_file> <[optional] project>\n")
             print("")
-            print("It works similarly to 'xl rip <source> <[optional] project>' but rotates the result.")
+            print("It works similarly to 'xl rip <source> <[optional] project>read_config_optionconfig' but rotates the result.")
             print("")
             print("<source_file>")
             print("It is an Assembly or BASIC file (e.g., an Assembly file exported from CharPad or VChar64).")
@@ -1882,6 +1885,7 @@ def help(params):
             print("If 'cc65_targets' is passed to <params>, then it compiles a test program using CC65.")
             print("If 'cmoc_targets' is passed to <params>, then it compiles a test program using CMOC.")
             print("If 'lcc1802_targets' is passed to <params>, then it compiles a test program using LCC1802.")
+            print("If 'orcac_targets' is passed to <params>, then it compiles a test program using GoldenGate.")
             print("If 'stdio' is passed to <params>, then it compiles a test program using only stdio.h and the native compiler (defined in config.ini).")
         elif params[1]=="debug" or params[1]=="d":
             printc(bcolors.BOLD,"xl debug <project> <XSize> <YSize>")
@@ -1912,7 +1916,7 @@ def help(params):
             print("\n<target>")
             print("If no <target> is passed, then the native target (terminal console) is considered.")
             print("\nIf '<dev-kit>_targets' is passed as <target> (e.g., 'cc65_targets'), \nthen the given project/s is/are built for all targets that use <dev-kit> to be compiled.")
-            print("Possible dev-kits are: 'cc65', 'z88dk', 'cmoc', 'lcc1802'.") 
+            print("Possible dev-kits are: 'cc65', 'z88dk', 'cmoc', 'lcc1802', 'orcac'.") 
             print("\n[NOT recommended] If 'all' is passed as <target>, then the given project/s is/are built for all targets (it may take very long and it requires all supported compilers.") 
             
             print("\nPress ENTER to continue...")
@@ -2051,6 +2055,7 @@ def read_config():
     global cmoc_compiler_opts
     global cc65_compiler_opts
     global lcc1802_compiler_opts
+    global orcac_compiler_opts
 
     global native_compiler
     
@@ -2112,14 +2117,15 @@ def read_config():
         cmoc_compiler_opts = read_config_option("build","cmoc_compiler_opts")
         cc65_compiler_opts = read_config_option("build","cc65_compiler_opts")
         lcc1802_compiler_opts = read_config_option("build","lcc1802_compiler_opts")
+        orcac_compiler_opts = read_config_option("build","orcac_compiler_opts")
 
-        
+
         native_compiler = read_config_option("build", "native_compiler")
-        
+
         tool_compiler = read_config_option("tools", "tool_compiler")
-        
+
         interactive_clean = read_config_option("clean", "interactive")
-        
+
         vice_path = read_config_option("run", "vice_path")
         vice_rom_path = read_config_option("run", "vice_rom_path")
         
@@ -2159,6 +2165,7 @@ def default_config():
     global cmoc_compiler_opts
     global cc65_compiler_opts
     global lcc1802_compiler_opts
+    global orcac_compiler_opts
 
     global native_compiler
     
@@ -2188,7 +2195,8 @@ def default_config():
     native_compiler = "gcc"
     tool_compiler = "gcc"  
     cc65_compiler_opts = "-O -Cl"
-    lcc1802_compiler_opts = '"-Wf-volatile" -O "-Wp-D nofloats" "-Wa-D LCCNOLONG" "-Wf-mulcall"' 
+    lcc1802_compiler_opts = '"-Wf-volatile" -O "-Wp-D nofloats" "-Wa-D LCCNOLONG" "-Wf-mulcall"'
+    orcac_compiler_opts = "+O"
     use_tools = 0
     global_vars.color_terminal = 0
 
@@ -2211,6 +2219,7 @@ def display_config():
     print("cmoc_compiler_opts: " +  cmoc_compiler_opts)
     print("cc65_compiler_opts: " +  cc65_compiler_opts)
     print("lcc1802_compiler_opts: " +  lcc1802_compiler_opts)
+    print("orcac_compiler_opts: " +  orcac_compiler_opts)
 
     print("native_compiler: " +  native_compiler)
     print("tool_compiler: " +  tool_compiler)
